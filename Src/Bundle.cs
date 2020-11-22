@@ -15,7 +15,7 @@ namespace BestBundle
         public BundleInfo Info { get { return info; } }
         private BundleInfo info;
 
-        private BundleResourceDatabase resourceDatabase = new BundleResourceDatabase();
+        public BundleResourceDatabase ResourceDatabase { get; private set; } = new BundleResourceDatabase();
 
         private Stream bundleAccessReadStream;
 
@@ -32,9 +32,9 @@ namespace BestBundle
 
         public IResource GetResource(string name)
         {
-            if(resourceDatabase.readResource(bundleAccessReadStream, name, out RawResource rawResource))
+            if (ResourceDatabase.readResource(bundleAccessReadStream, name, out RawResource rawResource))
             {
-                if(BundleFactory.Instance.TryRestoreResource(in rawResource, out IResource resource))
+                if (BundleFactory.Instance.TryRestoreResource(in rawResource, out IResource resource))
                 {
                     return resource;
                 }
@@ -43,9 +43,9 @@ namespace BestBundle
         }
         public T GetResource<T>(string name) where T : IResource
         {
-            if(resourceDatabase.readResource(bundleAccessReadStream, name, out RawResource rawResource))
+            if (ResourceDatabase.readResource(bundleAccessReadStream, name, out RawResource rawResource))
             {
-                if(BundleFactory.Instance.TryRestoreResource<T>(in rawResource, out T resource))
+                if (BundleFactory.Instance.TryRestoreResource<T>(in rawResource, out T resource))
                 {
                     return resource;
                 }
@@ -68,7 +68,7 @@ namespace BestBundle
             {
                 if (info.Read(br))
                 {
-                    return resourceDatabase.Read(br);
+                    return ResourceDatabase.Read(br);
                 }
             }
             return false;

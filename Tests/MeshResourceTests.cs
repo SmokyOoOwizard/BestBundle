@@ -38,7 +38,6 @@ namespace BestBundle.Tests
             Assert.IsNotNull(savedBundle);
             Assert.NotZero(savedBundle.Length);
 
-            Debug.Log(savedBundle.Length);
 
             using (MemoryStream ms = new MemoryStream(savedBundle))
             {

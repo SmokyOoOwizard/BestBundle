@@ -76,6 +76,10 @@ namespace BestBundle.Tests
 
             Assert.AreEqual("Test Bundle", localBundle.Info.Name);
 
+            Assert.IsTrue(localBundle.ResourceDatabase.ContainsResourceType("TestResource"));
+
+            Assert.IsTrue(localBundle.ResourceDatabase.ContainsResource("Test"));
+
             var resource1 = localBundle.GetResource("Test");
 
             Assert.IsNotNull(resource1);

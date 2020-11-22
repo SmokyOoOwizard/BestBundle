@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace BestBundle
 {
-    internal class BundleResourceDatabase
+    public class BundleResourceDatabase
     {
         // 0x0F - Header
         // 0x04 - Resource Infos Count
@@ -17,7 +18,30 @@ namespace BestBundle
 
         internal BundleResourceInfo[] ResourceInfos = new BundleResourceInfo[0];
 
-        private readonly Dictionary<string, int> ResourcesNamesMap = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> resourcesNamesMap = new Dictionary<string, int>();
+        private readonly HashSet<string> existingResourceTypes = new HashSet<string>();
+
+        internal BundleResourceDatabase()
+        {
+
+        }
+
+        public string[] GetResourceTypes()
+        {
+            return existingResourceTypes.ToArray();
+        }
+        public bool ContainsResourceType(string resourceType)
+        {
+            return existingResourceTypes.Contains(resourceType);
+        }
+        public string[] GetResourceIds()
+        {
+            return resourcesNamesMap.Keys.ToArray();
+        }
+        public bool ContainsResource(string nameId)
+        {
+            return resourcesNamesMap.ContainsKey(nameId);
+        }
 
         internal bool readResource(Stream stream, string resourceName, out RawResource resource)
         {
@@ -25,7 +49,7 @@ namespace BestBundle
             {
                 using (BinaryReader br = new BinaryReader(stream, System.Text.Encoding.UTF8, true))
                 {
-                    if (ResourcesNamesMap.TryGetValue(resourceName, out int resId))
+                    if (resourcesNamesMap.TryGetValue(resourceName, out int resId))
                     {
                         var resInfo = ResourceInfos[resId];
 
@@ -41,7 +65,7 @@ namespace BestBundle
             return false;
         }
 
-        public bool Read(BinaryReader reader)
+        internal bool Read(BinaryReader reader)
         {
             long firstHeaderPart = reader.ReadInt64();
             long secondHeaderPart = reader.ReadInt64();
@@ -63,8 +87,13 @@ namespace BestBundle
                         string resourceName = res.NameId;
                         if (!string.IsNullOrEmpty(resourceName))
                         {
-                            ResourcesNamesMap[resourceName] = i;
+                            resourcesNamesMap[resourceName] = i;
                         }
+                        if (!string.IsNullOrEmpty(res.ResourceType))
+                        {
+                            existingResourceTypes.Add(res.ResourceType);
+                        }
+
                         ResourceInfos[i] = res;
                     }
                 }
@@ -72,7 +101,7 @@ namespace BestBundle
 
             return true;
         }
-        public void Write(BinaryWriter writer)
+        internal void Write(BinaryWriter writer)
         {
             writer.Write(HEADER_PART_1);
             writer.Write(HEADER_PART_2);
