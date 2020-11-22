@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 using System.IO;
+using BestBundle.UnityResources;
 
 namespace BestBundle
 {
@@ -13,6 +14,8 @@ namespace BestBundle
         static BundleFactory()
         {
             Instance = new BundleFactory();
+
+            Instance.AddResourceType<MeshResource>();
         }
 
         public void AddResourceType<T>() where T : IResource

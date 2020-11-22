@@ -22,8 +22,6 @@ namespace BestBundle.Tests
         [Test]
         public void MeshWriteTest()
         {
-            BundleFactory.Instance.AddResourceType<MeshResource>();
-
             var primitive = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             originalMesh = primitive.GetComponent<MeshFilter>().sharedMesh;
 
