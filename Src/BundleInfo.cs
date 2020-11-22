@@ -19,25 +19,18 @@ namespace BestBundle
 
         public bool Read(BinaryReader reader)
         {
-            try
-            {
-                long firstHeaderPart = reader.ReadInt64();
-                long secondHeaderPart = reader.ReadInt64();
-                if (firstHeaderPart != HEADER_PART_1 || secondHeaderPart != HEADER_PART_2)
-                {
-                    return false;
-                }
-
-                Name = reader.ReadString();
-
-                CreateTime = reader.ReadInt64();
-
-                return true;
-            }
-            catch (Exception ex)
+            long firstHeaderPart = reader.ReadInt64();
+            long secondHeaderPart = reader.ReadInt64();
+            if (firstHeaderPart != HEADER_PART_1 || secondHeaderPart != HEADER_PART_2)
             {
                 return false;
             }
+
+            Name = reader.ReadString();
+
+            CreateTime = reader.ReadInt64();
+
+            return true;
         }
 
         public void Write(BinaryWriter writer)

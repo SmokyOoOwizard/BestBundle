@@ -37,11 +37,17 @@ namespace BestBundle.UnityResources
                         {
                             if (restoreVertex(br) && restoreTriangles(br))
                             {
-                                if (restoreNormals(br) && restoreTangents(br))
+                                if (restoreSubMeshes(br))
                                 {
-                                    if (restoreColors(br) && restoreUVs(br))
+                                    if (restoreNormals(br) && restoreTangents(br))
                                     {
+                                        if (restoreColors(br) && restoreUVs(br))
+                                        {
+                                            if (restoreBoneWeights(br) && restoreBlendShape(br))
+                                            {
 
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -64,13 +70,19 @@ namespace BestBundle.UnityResources
                     {
                         if (saveMeshInfo(bw))
                         {
-                            if (saveVertex(bw) && saveTriangles(bw))
+                            if (saveVertex(bw) && saveTriangles(bw)) // mesh
                             {
-                                if (saveNormals(bw) && saveTangents(bw))
+                                if (saveSubMeshes(bw)) // meshes
                                 {
-                                    if (saveColors(bw) && saveUVs(bw))
+                                    if (saveNormals(bw) && saveTangents(bw)) // vertex info
                                     {
+                                        if (saveColors(bw) && saveUVs(bw)) // colors
+                                        {
+                                            if (saveBoneWeights(bw) && saveBlendShape(bw)) // anim
+                                            {
 
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -98,6 +110,7 @@ namespace BestBundle.UnityResources
             return true;
         }
         #endregion
+
         #region Vertex
         private bool saveVertex(BinaryWriter bw)
         {
@@ -157,6 +170,66 @@ namespace BestBundle.UnityResources
             return true;
         }
         #endregion
+
+        #region SubMeshes
+        private bool saveSubMeshes(BinaryWriter bw)
+        {
+            var meshesCount = Mesh.subMeshCount;
+
+            bw.Write(meshesCount);
+            for (int i = 0; i < meshesCount; i++)
+            {
+                var subMesh = Mesh.GetSubMesh(i);
+                bw.Write(subMesh.baseVertex);
+                bw.Write(subMesh.firstVertex);
+                bw.Write(subMesh.vertexCount);
+
+                bw.Write(subMesh.indexStart);
+                bw.Write(subMesh.indexCount);
+
+                bw.Write((byte)subMesh.topology);
+
+                bw.Write(subMesh.bounds.min.x);
+                bw.Write(subMesh.bounds.min.y);
+                bw.Write(subMesh.bounds.min.z);
+
+                bw.Write(subMesh.bounds.max.x);
+                bw.Write(subMesh.bounds.max.y);
+                bw.Write(subMesh.bounds.max.z);
+            }
+
+            return true;
+        }
+        private bool restoreSubMeshes(BinaryReader br)
+        {
+            var meshesCount = br.ReadInt32();
+
+            for (int i = 0; i < meshesCount; i++)
+            {
+                var subMesh = new UnityEngine.Rendering.SubMeshDescriptor();
+
+                subMesh.baseVertex = br.ReadInt32();
+                subMesh.firstVertex = br.ReadInt32();
+                subMesh.vertexCount = br.ReadInt32();
+
+                subMesh.indexStart = br.ReadInt32();
+                subMesh.indexCount = br.ReadInt32();
+
+                subMesh.topology = (MeshTopology)br.ReadByte();
+
+                var bounds = new Bounds();
+                bounds.SetMinMax(new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle()),
+                    new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle()));
+
+                subMesh.bounds = bounds;
+
+                Mesh.SetSubMesh(i, subMesh);
+            }
+
+            return true;
+        }
+        #endregion
+
         #region Normals
         private bool saveNormals(BinaryWriter bw)
         {
@@ -222,6 +295,7 @@ namespace BestBundle.UnityResources
             return true;
         }
         #endregion
+
         #region Colors
         private bool saveColors(BinaryWriter bw)
         {
@@ -254,7 +328,6 @@ namespace BestBundle.UnityResources
             return true;
         }
         #endregion
-
         #region UV's
         private bool saveUVs(BinaryWriter bw)
         {
@@ -401,10 +474,127 @@ namespace BestBundle.UnityResources
         }
         #endregion
 
-        #region Bones
-        #region Bindposes
+        #region BoneWeights
+        private bool saveBoneWeights(BinaryWriter bw)
+        {
+            var bones = Mesh.GetBonesPerVertex();
 
+            bw.Write(bones.Length);
+            bw.Write(bones.ToArray());
+
+            var weights = Mesh.GetAllBoneWeights();
+            bw.Write(weights.Length);
+
+            for (int i = 0; i < weights.Length; i++)
+            {
+                var weight = weights[i];
+                bw.Write(weight.boneIndex);
+                bw.Write(weight.weight);
+            }
+
+            return true;
+        }
+        private bool restoreBoneWeights(BinaryReader br)
+        {
+            var bonesCount = br.ReadInt32();
+            var bones = br.ReadBytes(bonesCount);
+
+            var weightCount = br.ReadInt32();
+
+            var weights = new BoneWeight1[weightCount];
+            for (int i = 0; i < weightCount; i++)
+            {
+                var weight = new BoneWeight1();
+                weight.boneIndex = br.ReadInt32();
+                weight.weight = br.ReadSingle();
+
+                weights[i] = weight;
+            }
+
+            Mesh.SetBoneWeights(new Unity.Collections.NativeArray<byte>(bones, Unity.Collections.Allocator.Temp),
+                new Unity.Collections.NativeArray<BoneWeight1>(weights, Unity.Collections.Allocator.Temp));
+
+            return true;
+        }
         #endregion
+
+        #region BlendShape
+        private bool saveBlendShape(BinaryWriter bw)
+        {
+            var shapeCount = Mesh.blendShapeCount;
+            bw.Write(shapeCount);
+
+            for (int i = 0; i < shapeCount; i++)
+            {
+                var shapeName = Mesh.GetBlendShapeName(i);
+
+                bw.Write(shapeName);
+
+                var frameCount = Mesh.GetBlendShapeFrameCount(i);
+                bw.Write(frameCount);
+                for (int f = 0; f < frameCount; f++)
+                {
+                    var dVertex = new Vector3[Mesh.vertexCount];
+                    var dNormals = new Vector3[Mesh.vertexCount];
+                    var dTangents = new Vector3[Mesh.vertexCount];
+
+                    Mesh.GetBlendShapeFrameVertices(i, f, dVertex, dNormals, dTangents);
+
+                    var frameWeight = Mesh.GetBlendShapeFrameWeight(i, f);
+                    bw.Write(frameWeight);
+                    bw.Write(Mesh.vertexCount);
+
+                    for (int d = 0; d < dVertex.Length; d++)
+                    {
+                        bw.Write(dVertex[i].x);
+                        bw.Write(dVertex[i].y);
+                        bw.Write(dVertex[i].z);
+
+                        bw.Write(dNormals[i].x);
+                        bw.Write(dNormals[i].y);
+                        bw.Write(dNormals[i].z);
+
+                        bw.Write(dTangents[i].x);
+                        bw.Write(dTangents[i].y);
+                        bw.Write(dTangents[i].z);
+                    }
+                }
+            }
+
+            return true;
+        }
+        private bool restoreBlendShape(BinaryReader br)
+        {
+            var shapeCount = br.ReadInt32();
+
+            for (int i = 0; i < shapeCount; i++)
+            {
+               string shapeName = br.ReadString();
+
+                var frameCount = br.ReadInt32();
+
+                for (int f = 0; f < frameCount; f++)
+                {
+                    float frameWeight = br.ReadSingle();
+
+                    var vertexCount = br.ReadInt32();
+                    Vector3[] dVertex = new Vector3[vertexCount];
+                    Vector3[] dNormals = new Vector3[vertexCount];
+                    Vector3[] dTangents = new Vector3[vertexCount];
+
+                    for (int d = 0; d < vertexCount; d++)
+                    {
+                        dVertex[d] = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+                        dNormals[d] = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+                        dTangents[d] = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+                    }
+
+                    Mesh.AddBlendShapeFrame(shapeName, frameWeight, dVertex, dNormals, dTangents);
+                }
+            }
+
+            return true;
+        }
         #endregion
     }
 }
