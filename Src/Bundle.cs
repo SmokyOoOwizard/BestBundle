@@ -19,6 +19,8 @@ namespace BestBundle
 
         private Stream bundleAccessReadStream;
 
+        private object getResourceLockObj = new object();
+
         internal Bundle()
         {
 
@@ -32,22 +34,28 @@ namespace BestBundle
 
         public IResource GetResource(string name)
         {
-            if (ResourceDatabase.readResource(bundleAccessReadStream, name, out RawResource rawResource))
+            lock (getResourceLockObj)
             {
-                if (BundleFactory.Instance.TryRestoreResource(in rawResource, out IResource resource))
+                if (ResourceDatabase.readResource(bundleAccessReadStream, name, out RawResource rawResource))
                 {
-                    return resource;
+                    if (BundleFactory.Instance.TryRestoreResource(in rawResource, out IResource resource))
+                    {
+                        return resource;
+                    }
                 }
             }
             return null;
         }
         public T GetResource<T>(string name) where T : IResource
         {
-            if (ResourceDatabase.readResource(bundleAccessReadStream, name, out RawResource rawResource))
+            lock (getResourceLockObj)
             {
-                if (BundleFactory.Instance.TryRestoreResource<T>(in rawResource, out T resource))
+                if (ResourceDatabase.readResource(bundleAccessReadStream, name, out RawResource rawResource))
                 {
-                    return resource;
+                    if (BundleFactory.Instance.TryRestoreResource<T>(in rawResource, out T resource))
+                    {
+                        return resource;
+                    }
                 }
             }
             return default(T);

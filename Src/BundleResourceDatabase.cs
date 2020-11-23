@@ -34,6 +34,25 @@ namespace BestBundle
         {
             return existingResourceTypes.Contains(resourceType);
         }
+
+        public string GetResourceTypeName(string nameID)
+        {
+            if(resourcesNamesMap.TryGetValue(nameID, out int id))
+            {
+                return ResourceInfos[id].ResourceType;
+            }
+            return null;
+        }
+        public Type GetResourceType(string nameId)
+        {
+            if(resourcesNamesMap.TryGetValue(nameId, out int id))
+            {
+                string typeName = ResourceInfos[id].ResourceType;
+                return BundleFactory.Instance.GetResourceTypeByTypeName(typeName);
+            }
+            return null;
+        }
+
         public string[] GetResourceIds()
         {
             return resourcesNamesMap.Keys.ToArray();

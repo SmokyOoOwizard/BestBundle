@@ -27,6 +27,14 @@ namespace BestBundle
                 resourcesTypes[resourceType] = typeof(T);
             }
         }
+        public Type GetResourceTypeByTypeName(string typeName)
+        {
+            if(resourcesTypes.TryGetValue(typeName, out Type resourceType))
+            {
+                return resourceType;
+            }
+            return null;
+        }
 
         internal bool TryRestoreResource(in RawResource raw, out IResource resource)
         {
