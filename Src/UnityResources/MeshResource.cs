@@ -27,33 +27,36 @@ namespace BestBundle.UnityResources
         {
             if (Mesh == null)
             {
-                Mesh = new Mesh();
-
                 using (MemoryStream ms = new MemoryStream(rawData))
                 {
-                    using (BinaryReader br = new BinaryReader(ms, Encoding.UTF8, true))
+                    BundleFactory.Instance.UnitySynchronization.Send((o) =>
                     {
-                        if (restoreMeshInfo(br))
-                        {
-                            if (restoreVertex(br) && restoreTriangles(br))
-                            {
-                                if (restoreSubMeshes(br))
-                                {
-                                    if (restoreNormals(br) && restoreTangents(br))
-                                    {
-                                        if (restoreColors(br) && restoreUVs(br))
-                                        {
-                                            if (restoreBoneWeights(br) && restoreBlendShape(br))
-                                            {
+                        Mesh = new Mesh();
 
+                        using (BinaryReader br = new BinaryReader(ms, Encoding.UTF8, true))
+                        {
+                            if (restoreMeshInfo(br))
+                            {
+                                if (restoreVertex(br) && restoreTriangles(br))
+                                {
+                                    if (restoreSubMeshes(br))
+                                    {
+                                        if (restoreNormals(br) && restoreTangents(br))
+                                        {
+                                            if (restoreColors(br) && restoreUVs(br))
+                                            {
+                                                if (restoreBoneWeights(br) && restoreBlendShape(br))
+                                                {
+
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                    }
+                        }
+                    }, null);
                     return true;
                 }
             }
@@ -569,7 +572,7 @@ namespace BestBundle.UnityResources
 
             for (int i = 0; i < shapeCount; i++)
             {
-               string shapeName = br.ReadString();
+                string shapeName = br.ReadString();
 
                 var frameCount = br.ReadInt32();
 

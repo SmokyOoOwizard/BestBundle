@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using BestBundle.UnityResources;
+using System.Threading;
 
 namespace BestBundle
 {
@@ -10,6 +11,13 @@ namespace BestBundle
         public static BundleFactory Instance { get; private set; }
 
         private readonly Dictionary<string, Type> resourcesTypes = new Dictionary<string, Type>();
+
+        internal SynchronizationContext UnitySynchronization;
+
+        public void SetUnitySynchronizationContext(SynchronizationContext context)
+        {
+            UnitySynchronization = context;
+        }
 
         static BundleFactory()
         {
