@@ -1,8 +1,8 @@
 ﻿namespace BestBundle
 {
-    public interface IResource
+    public interface IBundleEntity
     {
-        string ResourceType { get; }
+        string EntityType { get; }
 
         bool Restore(in byte[] rawData);
         bool Save(out byte[] rawData);

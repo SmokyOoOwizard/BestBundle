@@ -10,9 +10,9 @@ namespace BestBundle.Tests
 {
     public class BundleReadWriteTests
     {
-        public class TestResource : IResource
+        public class TestEntity : IBundleEntity
         {
-            public string ResourceType => "TestResource";
+            public string EntityType => "TestEntity";
 
             public byte[] SavedBytes = new byte[] { 0xFF, 0x0F, 0x86, 0, 0, 0, 0, 0x25 };
             public byte[] RestoredBytes;
@@ -29,9 +29,9 @@ namespace BestBundle.Tests
                 return true;
             }
         }
-        public class TestResource2 : IResource
+        public class TestEntity2 : IBundleEntity
         {
-            public string ResourceType => "TestResour2";
+            public string EntityType => "TestEntity2";
 
             public byte[] SavedBytes = new byte[] { 0xFF, 0x0F, 0x86, 0, 0, 1, 0, 0x25 };
             public byte[] RestoredBytes;
@@ -49,61 +49,57 @@ namespace BestBundle.Tests
             }
         }
 
-        MemoryStream ms;
+        byte[] savedBundle;
 
         [OneTimeSetUp]
         [Test]
         public void BundleWriteTest()
         {
-            BundleFactory.Instance.AddResourceType<TestResource>();
-            BundleFactory.Instance.AddResourceType<TestResource2>();
+            BundleFactory.Instance.AddEntityType<TestEntity>();
+            BundleFactory.Instance.AddEntityType<TestEntity2>();
 
-            ms = new MemoryStream();
+            using (MemoryStream ms = new MemoryStream())
+            {
 
-            BundleFactory.Instance.CreateBundle(ms, "Test Bundle", new Dictionary<string, IResource>() { { "Test", new TestResource() }, { "2Test", new TestResource2() } });
+                BundleFactory.Instance.CreateBundle(ms, "Test Bundle", new Dictionary<string, IBundleEntity>() { { "Test", new TestEntity() }, { "2Test", new TestEntity2() } });
 
-            var binary = ms.ToArray();
-            Assert.IsNotNull(binary);
-            Assert.NotZero(binary.Length);
+                var binary = ms.ToArray();
+                Assert.IsNotNull(binary);
+                Assert.NotZero(binary.Length);
+
+                savedBundle = binary;
+            }
         }
 
         [Test]
         public void BundleReadTest()
         {
-            ms.Seek(0, SeekOrigin.Begin);
-
-            Assert.IsTrue(Bundle.TryOpenBundle(ms, out Bundle localBundle));
-
-            Assert.AreEqual("Test Bundle", localBundle.Info.Name);
-
-            Assert.IsTrue(localBundle.ResourceDatabase.ContainsResourceType("TestResource"));
-
-            Assert.IsTrue(localBundle.ResourceDatabase.ContainsResource("Test"));
-
-            var resource1 = localBundle.GetResource("Test");
-
-            Assert.IsNotNull(resource1);
-            Assert.IsTrue(resource1 is TestResource);
-            Assert.AreEqual((resource1 as TestResource).SavedBytes, (resource1 as TestResource).RestoredBytes);
-
-            var resource2 = localBundle.GetResource<TestResource2>("2Test");
-
-            Assert.IsNotNull(resource2);
-            Assert.AreEqual(resource2.SavedBytes, resource2.RestoredBytes);
-
-            var resource3 = localBundle.GetResource("Null");
-            Assert.IsNull(resource3);
-
-            var resource4 = localBundle.GetResource<TestResource2>("Test");
-            Assert.IsNull(resource4);
-
-        }
-
-        ~BundleReadWriteTests()
-        {
-            if (ms != null)
+            using (MemoryStream ms = new MemoryStream(savedBundle))
             {
-                //ms.Close();
+                Assert.IsTrue(Bundle.TryOpenBundle(ms, out Bundle localBundle));
+
+                Assert.AreEqual("Test Bundle", localBundle.Info.Name);
+
+                Assert.IsTrue(localBundle.EntityDatabase.ContainsEntityType("TestEntity"));
+
+                Assert.IsTrue(localBundle.EntityDatabase.ContainsEntity("Test"));
+
+                var entity1 = localBundle.GetEntity("Test");
+
+                Assert.IsNotNull(entity1);
+                Assert.IsTrue(entity1 is TestEntity);
+                Assert.AreEqual((entity1 as TestEntity).SavedBytes, (entity1 as TestEntity).RestoredBytes);
+
+                var entity2 = localBundle.GetEntity<TestEntity2>("2Test");
+
+                Assert.IsNotNull(entity2);
+                Assert.AreEqual(entity2.SavedBytes, entity2.RestoredBytes);
+
+                var entity3 = localBundle.GetEntity("Null");
+                Assert.IsNull(entity3);
+
+                var entity4 = localBundle.GetEntity<TestEntity2>("Test");
+                Assert.IsNull(entity4);
             }
         }
     }

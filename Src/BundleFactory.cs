@@ -10,7 +10,7 @@ namespace BestBundle
     {
         public static BundleFactory Instance { get; private set; }
 
-        private readonly Dictionary<string, Type> resourcesTypes = new Dictionary<string, Type>();
+        private readonly Dictionary<string, Type> entityTypes = new Dictionary<string, Type>();
 
         internal SynchronizationContext UnitySynchronization;
 
@@ -23,71 +23,71 @@ namespace BestBundle
         {
             Instance = new BundleFactory();
 
-            Instance.AddResourceType<MeshResource>();
+            Instance.AddEntityType<MeshEntity>();
         }
 
-        public void AddResourceType<T>() where T : IResource
+        public void AddEntityType<T>() where T : IBundleEntity
         {
             var obj = Activator.CreateInstance<T>();
-            var resourceType = obj.ResourceType;
-            if (!string.IsNullOrEmpty(resourceType))
+            var entityType = obj.EntityType;
+            if (!string.IsNullOrEmpty(entityType))
             {
-                resourcesTypes[resourceType] = typeof(T);
+                entityTypes[entityType] = typeof(T);
             }
         }
-        public Type GetResourceTypeByTypeName(string typeName)
+        public Type GetEntityTypeByTypeName(string typeName)
         {
-            if(resourcesTypes.TryGetValue(typeName, out Type resourceType))
+            if(entityTypes.TryGetValue(typeName, out Type entityType))
             {
-                return resourceType;
+                return entityType;
             }
             return null;
         }
 
-        internal bool TryRestoreResource(in RawResource raw, out IResource resource)
+        internal bool TryRestoreEntity(in RawEntity raw, out IBundleEntity entity)
         {
-            if (!string.IsNullOrEmpty(raw.ResourceType))
+            if (!string.IsNullOrEmpty(raw.EntityType))
             {
-                if (resourcesTypes.TryGetValue(raw.ResourceType, out Type type))
+                if (entityTypes.TryGetValue(raw.EntityType, out Type type))
                 {
                     var obj = Activator.CreateInstance(type);
-                    if (obj is IResource)
+                    if (obj is IBundleEntity)
                     {
-                        var iresource = obj as IResource;
-                        if (iresource.Restore(in raw.Resource))
+                        var emptyEntity = obj as IBundleEntity;
+                        if (emptyEntity.Restore(in raw.Entity))
                         {
-                            resource = iresource;
+                            entity = emptyEntity;
                             return true;
                         }
                     }
                 }
             }
-            resource = null;
+            entity = null;
             return false;
         }
-        internal bool TryRestoreResource<T>(in RawResource raw, out T resource) where T : IResource
+        internal bool TryRestoreEntity<T>(in RawEntity raw, out T entity) where T : IBundleEntity
         {
-            if (!string.IsNullOrEmpty(raw.ResourceType))
+            if (!string.IsNullOrEmpty(raw.EntityType))
             {
-                if (resourcesTypes.TryGetValue(raw.ResourceType, out Type type))
+                if (entityTypes.TryGetValue(raw.EntityType, out Type type))
                 {
                     var obj = Activator.CreateInstance(type);
                     if (obj is T)
                     {
-                        var iresource = (T)obj;
-                        if (iresource.Restore(in raw.Resource))
+                        var emptyEntity = (T)obj;
+                        if (emptyEntity.Restore(in raw.Entity))
                         {
-                            resource = iresource;
+                            entity = emptyEntity;
                             return true;
                         }
                     }
                 }
             }
-            resource = default(T);
+            entity = default(T);
             return false;
         }
 
-        public bool CreateBundle(Stream output, string name, Dictionary<string, IResource> resources)
+        public bool CreateBundle(Stream output, string name, Dictionary<string, IBundleEntity> entities)
         {
             if (!output.CanWrite || !output.CanSeek)
             {
@@ -101,7 +101,7 @@ namespace BestBundle
             using (BinaryWriter bw = new BinaryWriter(output, System.Text.Encoding.UTF8, true))
             {
                 info.Write(bw);
-                ResourceDatabaseHelper.CreateAndWriteDatabase(output, resources);
+                EntityDatabaseHelper.CreateAndWriteDatabase(output, entities);
             }
 
             return true;

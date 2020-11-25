@@ -8,17 +8,17 @@ using UnityEngine;
 
 namespace BestBundle.UnityResources
 {
-    public sealed class MeshResource : IResource
+    public sealed class MeshEntity : IBundleEntity
     {
         public Mesh Mesh;
 
-        public string ResourceType => "Mesh";
+        public string EntityType => "Mesh";
 
-        public MeshResource()
+        public MeshEntity()
         {
 
         }
-        public MeshResource(Mesh mesh)
+        public MeshEntity(Mesh mesh)
         {
             Mesh = mesh;
         }

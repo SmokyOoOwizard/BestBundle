@@ -11,7 +11,7 @@ using BestBundle.UnityResources;
 
 namespace BestBundle.Tests
 {
-    public class MeshResourceTests
+    public class MeshEntityTests
     {
 
         private Mesh originalMesh;
@@ -31,7 +31,7 @@ namespace BestBundle.Tests
 
             using (MemoryStream ms = new MemoryStream())
             {
-                Assert.IsTrue(BundleFactory.Instance.CreateBundle(ms, "MeshBundle", new Dictionary<string, IResource>() { { "TestMesh", new MeshResource(originalMesh) } }));
+                Assert.IsTrue(BundleFactory.Instance.CreateBundle(ms, "MeshBundle", new Dictionary<string, IBundleEntity>() { { "TestMesh", new MeshEntity(originalMesh) } }));
                 savedBundle = ms.ToArray();
             }
         }
@@ -47,11 +47,11 @@ namespace BestBundle.Tests
             {
                 Assert.IsTrue(Bundle.TryOpenBundle(ms, out Bundle bundle));
 
-                var meshResource = bundle.GetResource<MeshResource>("TestMesh");
+                var meshEntity = bundle.GetEntity<MeshEntity>("TestMesh");
 
-                Assert.IsNotNull(meshResource);
+                Assert.IsNotNull(meshEntity);
 
-                var mesh = meshResource.Mesh;
+                var mesh = meshEntity.Mesh;
 
                 Assert.IsNotNull(mesh);
 
@@ -73,9 +73,9 @@ namespace BestBundle.Tests
                     {
                         Assert.IsTrue(Bundle.TryOpenBundle(ms, out Bundle bundle));
 
-                        var meshResource = bundle.GetResource<MeshResource>("TestMesh");
+                        var meshEntity = bundle.GetEntity<MeshEntity>("TestMesh");
 
-                        Assert.IsNotNull(meshResource);
+                        Assert.IsNotNull(meshEntity);
                         return true;
                     }
                     catch (Exception ex)

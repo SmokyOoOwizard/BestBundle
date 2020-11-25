@@ -4,19 +4,19 @@ using System.Text;
 
 namespace BestBundle
 {
-    internal struct BundleResourceInfo
+    internal struct BundleEntityInfo
     {
         // 0x04 - Local Id
         // ?    - Name Id
-        // ?    - Resource Type
-        // 0x08 - Resource Length
-        // 0x08 - Resource Position
+        // ?    - Entity Type
+        // 0x08 - Entity Length
+        // 0x08 - Entity Position
 
         public int LocalId;
         public string NameId;
-        public string ResourceType;
-        public long ResourceLength;
-        public long ResourcePosition;
+        public string EntityType;
+        public long EntityLength;
+        public long EntityPosition;
 
 
         public bool Read(BinaryReader reader)
@@ -24,10 +24,10 @@ namespace BestBundle
             LocalId = reader.ReadInt32();
 
             NameId = reader.ReadString();
-            ResourceType = reader.ReadString();
+            EntityType = reader.ReadString();
 
-            ResourceLength = reader.ReadInt64();
-            ResourcePosition = reader.ReadInt64();
+            EntityLength = reader.ReadInt64();
+            EntityPosition = reader.ReadInt64();
 
             return true;
         }
@@ -37,10 +37,10 @@ namespace BestBundle
             writer.Write(LocalId);
 
             writer.Write(NameId);
-            writer.Write(ResourceType);
+            writer.Write(EntityType);
 
-            writer.Write(ResourceLength);
-            writer.Write(ResourcePosition);
+            writer.Write(EntityLength);
+            writer.Write(EntityPosition);
         }
     }
 }

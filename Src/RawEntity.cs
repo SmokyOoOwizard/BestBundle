@@ -3,20 +3,20 @@ using System.IO;
 
 namespace BestBundle
 {
-    internal struct RawResource
+    internal struct RawEntity
     {
         // 0x0F - Header
-        // ?    - Resource Type
+        // ?    - Entity Type
         // 0x04 - Local Id
         // 0x04 - Length
-        // ?    - Resource
+        // ?    - Entity
 
         public const long HEADER_PART_1 = 0xFF;
         public const long HEADER_PART_2 = 0xFF;
         public int LocalId;
-        public string ResourceType;
-        public int ResourceLength;
-        public byte[] Resource;
+        public string EntityType;
+        public int EntityLength;
+        public byte[] Entity;
 
         public bool Read(BinaryReader reader)
         {
@@ -29,10 +29,10 @@ namespace BestBundle
 
             LocalId = reader.ReadInt32();
 
-            ResourceType = reader.ReadString();
+            EntityType = reader.ReadString();
 
-            ResourceLength = reader.ReadInt32();
-            Resource = reader.ReadBytes(ResourceLength);
+            EntityLength = reader.ReadInt32();
+            Entity = reader.ReadBytes(EntityLength);
 
             return true;
         }
@@ -43,10 +43,10 @@ namespace BestBundle
             writer.Write(HEADER_PART_2);
             writer.Write(LocalId);
 
-            writer.Write(ResourceType);
+            writer.Write(EntityType);
 
-            writer.Write(ResourceLength);
-            writer.Write(Resource);
+            writer.Write(EntityLength);
+            writer.Write(Entity);
         }
     }
 }

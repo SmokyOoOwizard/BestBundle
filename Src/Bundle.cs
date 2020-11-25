@@ -9,17 +9,17 @@ namespace BestBundle
     {
         // 0x0F - Header
         // ?    - Bundle Info
-        // ?    - Resources Info Database
-        // ?    - Resources
+        // ?    - Entity Info Database
+        // ?    - Entity
 
         public BundleInfo Info { get { return info; } }
         private BundleInfo info;
 
-        public BundleResourceDatabase ResourceDatabase { get; private set; } = new BundleResourceDatabase();
+        public BundleEntitiesDatabase EntityDatabase { get; private set; } = new BundleEntitiesDatabase();
 
         private Stream bundleAccessReadStream;
 
-        private object getResourceLockObj = new object();
+        private object getEntityLockObj = new object();
 
         internal Bundle()
         {
@@ -32,29 +32,29 @@ namespace BestBundle
             info.CreateTime = DateTime.Now.Ticks;
         }
 
-        public IResource GetResource(string name)
+        public IBundleEntity GetEntity(string name)
         {
-            lock (getResourceLockObj)
+            lock (getEntityLockObj)
             {
-                if (ResourceDatabase.readResource(bundleAccessReadStream, name, out RawResource rawResource))
+                if (EntityDatabase.readEntity(bundleAccessReadStream, name, out RawEntity rawEntity))
                 {
-                    if (BundleFactory.Instance.TryRestoreResource(in rawResource, out IResource resource))
+                    if (BundleFactory.Instance.TryRestoreEntity(in rawEntity, out IBundleEntity entity))
                     {
-                        return resource;
+                        return entity;
                     }
                 }
             }
             return null;
         }
-        public T GetResource<T>(string name) where T : IResource
+        public T GetEntity<T>(string name) where T : IBundleEntity
         {
-            lock (getResourceLockObj)
+            lock (getEntityLockObj)
             {
-                if (ResourceDatabase.readResource(bundleAccessReadStream, name, out RawResource rawResource))
+                if (EntityDatabase.readEntity(bundleAccessReadStream, name, out RawEntity rawEntity))
                 {
-                    if (BundleFactory.Instance.TryRestoreResource<T>(in rawResource, out T resource))
+                    if (BundleFactory.Instance.TryRestoreEntity<T>(in rawEntity, out T entity))
                     {
-                        return resource;
+                        return entity;
                     }
                 }
             }
@@ -76,7 +76,7 @@ namespace BestBundle
             {
                 if (info.Read(br))
                 {
-                    return ResourceDatabase.Read(br);
+                    return EntityDatabase.Read(br);
                 }
             }
             return false;
